@@ -26,7 +26,7 @@ $(document).ready(function () {
     let categoryName = $("input[name=categoryName]");
     if (categoryName.val() != "") {
       const categoryObject = {
-        Name: categoryName.val(),
+        Name: categoryName.val().toUpperCase(),
       };
       categoryArr.push(categoryObject);
       localDb.setItem("Category", JSON.stringify(categoryArr));
@@ -49,7 +49,7 @@ $(document).ready(function () {
     let productCategory = $("#categoryDropDown option:selected");
     if (productName.val() != "" || productPrice.val() != "") {
       const productObject = {
-        Name: productName.val(),
+        Name: productName.val().toUpperCase(),
         Price: productPrice.val(),
         ProductCategory: productCategory.val(),
       };
@@ -72,47 +72,91 @@ $(document).ready(function () {
     event.preventDefault();
     let productName = $("#productDropDown option:selected");
     let productQuantity = $("input[name=productQuantity]");
+    const productPriceDynamic = $("#productPrice").val();
     if (productName.val() == "" || productQuantity.val() == "") {
       GenerateNotification(
         "Inventory feilds are empty.",
         "bg-warning",
         "text-dark"
       );
+    } else if (productPriceDynamic == "") {
+      GenerateNotification(
+        "Product price is not valid.",
+        "bg-warning",
+        "text-dark"
+      );
     } else {
+      const findInventoryProduct = inventoryArr.filter(
+        (inventory) => inventory.ProductName == productName.val()
+      );
+
+      const CreatedOn = new Date(Date.now()).toLocaleDateString();
+      const UpdatedOn = new Date(Date.now()).toLocaleDateString();
+
+      //variable function
+      let updateTotalPrice = () => {
+        return inventoryModel.ProductPrice * inventoryModel.ProductQuantity;
+      };
+
       let inventoryModel = {
         ProductName: "",
         ProductPrice: 0.0,
-        ProductQuantity: 0 ,
+        ProductQuantity: 0,
         ProductTotal: 0,
+        CreatedOn: null,
+        UpdatedOn: null,
       };
-      //variable function
-      let updateTotalPrice = () =>{
-        return inventoryModel.ProductPrice * inventoryModel.ProductQuantity;
+
+      if (findInventoryProduct.length == 0) {
+        //Internal fields from data-form
+        inventoryModel.ProductName = productName.val();
+        inventoryModel.ProductQuantity = parseInt(productQuantity.val());
+        inventoryModel.CreatedOn = CreatedOn;
+        //Getting product price
+        const productPrice = productArr.filter(
+          (product) => product.Name == productName.val()
+        );
+        inventoryModel.ProductPrice = parseFloat(productPrice[0].Price);
+        inventoryModel.ProductTotal = updateTotalPrice();
+        //To localDB
+        inventoryArr.push(inventoryModel);
+        localDb.setItem("Inventory", JSON.stringify(inventoryArr));
+        //Fields to empty
+        productQuantity.val(null);
+        $("#productPrice").val(null);
+        //Render table
+        RenderTable("INVENTORY");
+      } else {
+        findInventoryProduct.forEach((element, index) => {
+          inventoryArr[index].ProductQuantity += parseInt(
+            productQuantity.val()
+          );
+          inventoryArr[index].UpdatedOn = UpdatedOn;
+          inventoryArr[index].ProductTotal =
+            inventoryArr[index].ProductPrice *
+            inventoryArr[index].ProductQuantity;
+          localDb.setItem("Inventory", JSON.stringify(inventoryArr));
+          console.log(inventoryArr);
+          productQuantity.val(null);
+          $("#productPrice").val(null);
+          //Render table
+          RenderTable("INVENTORY");
+        });
       }
-      //Internal fields from data-form
-      inventoryModel.ProductName = productName.val();
-      inventoryModel.ProductQuantity = parseInt(productQuantity.val());
-      //Getting product price
-      const productPrice = productArr.filter(product => product.Name == productName.val());
-      inventoryModel.ProductPrice = parseFloat(productPrice[0].Price);
-      inventoryModel.ProductTotal = updateTotalPrice();
-      //To localDB
-      inventoryArr.push(inventoryModel);
-      localDb.setItem("Inventory", JSON.stringify(inventoryArr));
-      //Fields to empty
-      productQuantity.val(null);
-      $("#productPrice").val(null);
-      //Render table
-      RenderTable("INVENTORY");
     }
   });
 
   //End region
 
-  $("#productDropDown").on("change",function(){
+  $("#productDropDown").on("change", function () {
     const comboValue = $("#productDropDown option:selected").val();
-    const productPrice = productArr.filter(product => product.Name == comboValue);
-    $("#productPrice").val(productPrice[0].Price);
+    $("#productPrice").val(null);
+    if (comboValue != "") {
+      const productPrice = productArr.filter(
+        (product) => product.Name == comboValue
+      );
+      $("#productPrice").val(productPrice[0].Price);
+    }
   });
 
   function RenderTable(type) {
@@ -185,6 +229,8 @@ $(document).ready(function () {
                             <td>${element.ProductPrice}</td>
                             <td>${element.ProductQuantity}</td>
                             <td>${element.ProductTotal}</td>
+                            <td><strong><span class="text-white p-1 rounded-1  bg-dark">${(element.CreatedOn) || "NAN"}</span></strong></td>
+                            <td><strong><span class="text-white p-1 rounded-1  bg-warning">${(element.UpdatedOn) || "NAN"}</span></strong></td>
                             <td><button data-category-index="${index}" class="btn btn-sm btn-danger" disabled>X</button></td>
                         </tr>`);
             inventoryCounter++;

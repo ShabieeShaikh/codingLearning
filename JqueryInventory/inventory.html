@@ -37,7 +37,7 @@
               <a class="nav-link" href="./product.html">Product</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">Pricing</a>
+              <a class="nav-link" href="./inventory.html">Inventory</a>
             </li>
             <!-- <li class="nav-item">
                           <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
@@ -54,7 +54,7 @@
       </h1>
 
       <div class="row">
-        <div class="col-6">
+        <div class="col-4">
           <div class="card">
             <form id="inventoryForm">
               <div class="card-header text-center bg-white">
@@ -88,7 +88,7 @@
               </div>
 
               <div class="card-footer bg-white">
-                <button type="button" class="btn btn-outline-primary">
+                <button type="button" class="btn btn-outline-primary" onclick="location.href='./product.html'">
                   Add Product
                 </button>
                 <button type="submit" class="btn btn-success">Submit</button>
@@ -96,14 +96,16 @@
             </form>
           </div>
         </div>
-        <div class="col-6">
+        <div class="col-8">
           <table class="table table-bordered">
             <thead>
               <th>#</th>
               <th>Product</th>
               <th>Quantity</th>
               <th>Price</th>
-              <th>TP</th>
+              <th>Total Price</th>
+              <th>Created</th>
+              <th>Updated</th>
               <th>Delete</th>
             </thead>
             <tbody id="renderInventoryTable"></tbody>
