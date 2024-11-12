@@ -1,6 +1,6 @@
 $(document).ready(async function () {
   //Reading File
-  const filejson = await fetch("/assets/js/dummy.json").then((res) => {
+  const filejson = await fetch("./assets/js/dummy.json").then((res) => {
     return res.json();
   });
 
